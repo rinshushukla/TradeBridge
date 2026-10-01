@@ -1,0 +1,12 @@
+# Ignore specific files
+secrets.json
+.DS_Store
+
+# Ignore an entire directory (make sure to include the trailing slash)
+node_modules/
+dist/
+bin/
+
+# Ignore all files ending with a specific extension
+*.log
+*.env

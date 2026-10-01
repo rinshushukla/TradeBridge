@@ -1,0 +1,478 @@
+<section class="welcome">
+  <div>
+    <div class="eyebrow">
+      <span class="live-dot"></span>
+      YOUR TRADE, IN GOOD SHAPE
+    </div>
+
+    <h1>
+      Good morning, Arjun
+      <span class="wave">✳</span>
+    </h1>
+
+    <p>
+      Here’s what’s moving across your business today.
+    </p>
+  </div>
+
+  <button
+    class="primary-button"
+    (click)="showNewShipment.set(true)"
+  >
+    <span>＋</span>
+    New shipment
+  </button>
+</section>
+
+@if (toast()) {
+  <div class="toast" role="status">
+    {{ toast() }}
+
+    <button (click)="toast.set('')">
+      ×
+    </button>
+  </div>
+}
+
+<section class="metrics" aria-label="Shipment summary">
+  <article class="metric-card">
+    <div class="metric-top">
+      <span>Active shipments</span>
+      <span class="metric-icon mint">↗</span>
+    </div>
+
+    <div class="metric-value">
+      12
+      <span class="trend">↑ 2</span>
+    </div>
+
+    <div class="metric-caption">
+      Across 4 destination markets
+    </div>
+
+    <div class="mini-bars">
+      <i style="height:30%"></i>
+      <i style="height:46%"></i>
+      <i style="height:38%"></i>
+      <i style="height:61%"></i>
+      <i style="height:48%"></i>
+      <i style="height:74%"></i>
+      <i style="height:100%"></i>
+      <i style="height:82%"></i>
+      <i style="height:94%"></i>
+      <i style="height:70%"></i>
+      <i style="height:85%"></i>
+      <i style="height:100%"></i>
+    </div>
+  </article>
+
+  <article class="metric-card">
+    <div class="metric-top">
+      <span>Awaiting your attention</span>
+      <span class="metric-icon amber">!</span>
+    </div>
+
+    <div class="metric-value">03</div>
+
+    <div class="metric-caption">
+      2 documents · 1 customs update
+    </div>
+
+    <div
+      class="metric-link"
+      (click)="statusFilter.set('Documents needed')"
+    >
+      Review pending items
+      <span>↗</span>
+    </div>
+  </article>
+
+  <article class="metric-card">
+    <div class="metric-top">
+      <span>Trade value in motion</span>
+      <span class="metric-icon blue">₹</span>
+    </div>
+
+    <div class="metric-value">
+      ₹ 48.6<span class="unit">L</span>
+    </div>
+
+    <div class="metric-caption">
+      Across active orders this month
+    </div>
+
+    <div
+      class="metric-link"
+      (click)="announce('Monthly trade report opened')"
+    >
+      View trade activity
+      <span>↗</span>
+    </div>
+  </article>
+</section>
+
+<section class="insight-strip">
+  <div class="insight-symbol">✦</div>
+
+  <div>
+    <b>Your Chennai shipment needs a document</b>
+
+    <p>
+      INV-2026-041 · Commercial invoice requested by your customs partner.
+    </p>
+  </div>
+
+  <button (click)="selectShipment('TB-2408')">
+    Review shipment
+    <span>→</span>
+  </button>
+
+  <button
+    class="dismiss"
+    aria-label="Dismiss"
+    (click)="announce('Reminder dismissed')"
+  >
+    ×
+  </button>
+</section>
+
+<section class="shipments-section">
+  <div class="section-heading">
+    <div>
+      <div class="section-title-row">
+        <h2>Recent shipments</h2>
+        <span class="count">
+          {{ filteredShipments().length }}
+        </span>
+      </div>
+
+      <p>
+        Track every order from handoff to destination.
+      </p>
+    </div>
+
+    <button
+      class="text-button"
+      (click)="announce('Showing all shipments')"
+    >
+      All shipments
+      <span>→</span>
+    </button>
+  </div>
+
+  <div class="table-toolbar">
+    <label class="search">
+      <span>⌕</span>
+
+      <input
+        type="search"
+        placeholder="Search shipment or buyer"
+        [(ngModel)]="query"
+        aria-label="Search shipment or buyer"
+      >
+    </label>
+
+    <label class="filter-label">
+      <span>☷</span>
+
+      <select
+        aria-label="Filter by status"
+        [ngModel]="statusFilter()"
+        (ngModelChange)="statusFilter.set($event)"
+      >
+        <option value="All">All statuses</option>
+        <option>In transit</option>
+        <option>At customs</option>
+        <option>Documents needed</option>
+        <option>Delivered</option>
+      </select>
+
+      <span class="select-arrow">⌄</span>
+    </label>
+
+    <button
+      class="filter-button"
+      (click)="announce('Date filter opened')"
+    >
+      ◷
+      <span>Last 30 days</span>
+      ⌄
+    </button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>SHIPMENT</th>
+          <th>BUYER & DESTINATION</th>
+          <th>STATUS</th>
+          <th>LAST UPDATE</th>
+          <th></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (
+          shipment of filteredShipments();
+          track shipment.id
+        ) {
+          <tr
+            class="shipment-row"
+            (click)="selectShipment(shipment.id)"
+          >
+            <td>
+              <div class="shipment-id">
+                {{ shipment.id }}
+              </div>
+
+              <div class="commodity">
+                {{ shipment.commodity }}
+              </div>
+            </td>
+
+            <td>
+              <div class="buyer-cell">
+                <div
+                  class="avatar buyer-avatar"
+                  [style.background]="shipment.color"
+                >
+                  {{ shipment.initials }}
+                </div>
+
+                <div>
+                  <b>{{ shipment.buyer }}</b>
+                  <small>{{ shipment.route }}</small>
+                </div>
+              </div>
+            </td>
+
+            <td>
+              <span
+                class="status-pill"
+                [class]="'status-pill ' + statusClass(shipment.status)"
+              >
+                <i></i>
+                {{ shipment.status }}
+              </span>
+            </td>
+
+            <td class="updated">
+              {{ shipment.updated }}
+            </td>
+
+            <td class="row-arrow">
+              ↗
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    @if (filteredShipments().length === 0) {
+      <div class="empty-state">
+        No shipments match this search.
+      </div>
+    }
+  </div>
+
+  <div class="table-footer">
+    <span>
+      Showing
+      <b>{{ filteredShipments().length }}</b>
+      of 12 shipments
+    </span>
+
+    <div>
+      <button aria-label="Previous page" disabled>
+        ←
+      </button>
+
+      <button class="page-number">1</button>
+
+      <button (click)="announce('Page 2 selected')">
+        2
+      </button>
+
+      <button (click)="announce('Page 3 selected')">
+        3
+      </button>
+
+      <span>···</span>
+
+      <button (click)="announce('Last page selected')">
+        4
+      </button>
+
+      <button
+        aria-label="Next page"
+        (click)="announce('Next page selected')"
+      >
+        →
+      </button>
+    </div>
+  </div>
+</section>
+
+@if (selectedShipment(); as selected) {
+  <div
+    class="overlay"
+    (click)="selectedShipment.set(null)"
+  >
+    <section
+      class="detail-panel"
+      (click)="$event.stopPropagation()"
+    >
+      <button
+        class="close-button"
+        (click)="selectedShipment.set(null)"
+      >
+        ×
+      </button>
+
+      <div class="eyebrow">
+        SHIPMENT OVERVIEW
+      </div>
+
+      <h2>{{ selected.id }}</h2>
+
+      <p>
+        {{ selected.commodity }}
+        ·
+        {{ selected.buyer }}
+      </p>
+
+      <span
+        class="status-pill"
+        [class]="'status-pill ' + statusClass(selected.status)"
+      >
+        <i></i>
+        {{ selected.status }}
+      </span>
+
+      <div class="progress-track">
+        <div
+          [style.width.%]="selected.progress"
+        ></div>
+      </div>
+
+      <div class="progress-label">
+        <span>Shipment progress</span>
+        <b>{{ selected.progress }}%</b>
+      </div>
+
+      <div class="detail-route">
+        <span>
+          Origin
+          <b>{{ selected.route.split('→')[0] }}</b>
+        </span>
+
+        <span>
+          Destination
+          <b>{{ selected.route.split('→')[1] }}</b>
+        </span>
+      </div>
+
+      <h3>Recent activity</h3>
+
+      <div class="activity">
+        <i></i>
+
+        <div>
+          <b>
+            {{
+              selected.status === 'At customs'
+                ? 'Customs review in progress'
+                : selected.status === 'Documents needed'
+                  ? 'Action required: upload invoice'
+                  : 'Shipment milestone updated'
+            }}
+          </b>
+
+          <small>
+            {{ selected.updated }}
+            · Status provided by your trade partner
+          </small>
+        </div>
+      </div>
+
+      <div class="manual-note">
+        Customs milestones are
+        {{
+          selected.statusSource.toLowerCase() === 'icegate'
+            ? 'sourced from the configured ICEGATE integration'
+            : 'partner-reported until an authorized ICEGATE integration is configured'
+        }}.
+      </div>
+
+      <button
+        class="primary-button full-button"
+        (click)="announce('Shipment details opened'); selectedShipment.set(null)"
+      >
+        Open shipment workspace →
+      </button>
+    </section>
+  </div>
+}
+
+@if (showNewShipment()) {
+  <div
+    class="overlay"
+    (click)="showNewShipment.set(false)"
+  >
+    <section
+      class="new-modal"
+      (click)="$event.stopPropagation()"
+    >
+      <button
+        class="close-button"
+        (click)="showNewShipment.set(false)"
+      >
+        ×
+      </button>
+
+      <div class="eyebrow">
+        START A NEW ORDER
+      </div>
+
+      <h2>Create a shipment</h2>
+
+      <p>
+        Set up a trade order and invite your buyer to collaborate.
+      </p>
+
+      <label>
+        Buyer or company
+
+        <input
+          placeholder="e.g. Greenfield Imports"
+        >
+      </label>
+
+      <label>
+        Product or commodity
+
+        <input
+          placeholder="e.g. Organic turmeric"
+        >
+      </label>
+
+      <div class="modal-actions">
+        <button
+          class="secondary-button"
+          (click)="showNewShipment.set(false)"
+        >
+          Cancel
+        </button>
+
+        <button
+          class="primary-button"
+          (click)="showNewShipment.set(false); announce('Draft shipment created')"
+        >
+          Create draft
+          <span>→</span>
+        </button>
+      </div>
+    </section>
+  </div>
+}
