@@ -1,34 +1,71 @@
-import { Injectable } from '@angular/core';
+import { HttpClient, HttpInterceptorFn } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Observable, switchMap, tap } from 'rxjs';
+import { ApiUrlService } from './api-url.service';
 
-const SESSION_KEY = 'tradebridge-demo-session';
-const SIGNUP_KEY = 'tradebridge-demo-account';
+const TOKEN_KEY = 'tradebridge-access-token';
+const ROLE_KEY = 'tradebridge-user-role';
+
+interface AuthResponse {
+  accessToken: string;
+  expiresAtUtc: string;
+  id: string;
+  email: string;
+  role: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  readonly demoEmail = 'admin@tradebridge.com';
-  readonly demoPassword = 'TradeBridge123!';
+  private readonly http = inject(HttpClient);
+  private readonly api = inject(ApiUrlService);
 
   isAuthenticated(): boolean {
-    return localStorage.getItem(SESSION_KEY) === 'true';
+    return sessionStorage.getItem(TOKEN_KEY) !== null;
   }
 
-  login(email: string, password: string): boolean {
-    const savedAccount = localStorage.getItem(SIGNUP_KEY);
-    const account = savedAccount ? JSON.parse(savedAccount) as { email: string; password: string } : null;
-    const validDemoLogin = email === this.demoEmail && password === this.demoPassword;
-    const validLocalSignup = account?.email === email && account.password === password;
-
-    if (!validDemoLogin && !validLocalSignup) return false;
-    localStorage.setItem(SESSION_KEY, 'true');
-    return true;
+  login(identifier: string, password: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(this.api.url('/api/auth/login'), { identifier, password }).pipe(
+      tap(result => {
+        sessionStorage.setItem(TOKEN_KEY, result.accessToken);
+        sessionStorage.setItem(ROLE_KEY, result.role);
+      })
+    );
   }
 
-  signup(name: string, email: string, password: string): void {
-    localStorage.setItem(SIGNUP_KEY, JSON.stringify({ name, email, password }));
-    localStorage.setItem(SESSION_KEY, 'true');
+  signup(profile: {
+    name: string;
+    organization: string;
+    email: string;
+    phoneNumber: string;
+    password: string;
+    role: 'Importer' | 'Exporter' | 'CHA';
+  }): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(this.api.url('/api/auth/register'), profile).pipe(
+      switchMap(() => this.login(profile.email || profile.phoneNumber, profile.password))
+    );
   }
+
 
   logout(): void {
-    localStorage.removeItem(SESSION_KEY);
+    this.http.post(this.api.url('/api/auth/logout'), {}).subscribe({
+      complete: () => this.clearSession(),
+      error: () => this.clearSession()
+    });
+    this.clearSession();
+  }
+
+  private clearSession(): void {
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(ROLE_KEY);
+  }
+
+  currentRole(): string | null {
+    return sessionStorage.getItem(ROLE_KEY);
   }
 }
+
+export const authTokenInterceptor: HttpInterceptorFn = (request, next) => {
+  const token = sessionStorage.getItem(TOKEN_KEY);
+  if (!token) return next(request);
+  return next(request.clone({ setHeaders: { Authorization: `Bearer ${token}` } }));
+};

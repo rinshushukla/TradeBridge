@@ -10,15 +10,15 @@ import { AuthService } from '../../core/services/auth.service';
 export class LoginComponent {
   readonly auth = inject(AuthService);
   private router = inject(Router);
-  email = this.auth.demoEmail;
-  password = this.auth.demoPassword;
+  identifier = '';
+  password = '';
   error = signal('');
 
   submit(): void {
-    if (!this.auth.login(this.email.trim().toLowerCase(), this.password)) {
-      this.error.set('Email or password is incorrect. Check the demo credentials below or sign up.');
-      return;
-    }
-    void this.router.navigateByUrl('/overview');
+    this.error.set('');
+    this.auth.login(this.identifier.trim().toLowerCase(), this.password).subscribe({
+      next: () => void this.router.navigateByUrl('/overview'),
+      error: () => this.error.set('Email or password is incorrect, or the API is unavailable.')
+    });
   }
 }

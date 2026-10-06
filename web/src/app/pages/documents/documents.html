@@ -4,8 +4,23 @@
   <h1>Documents</h1>
 
   <p>
-    Manage invoices, certificates, customs documents and
-    other trade paperwork.
+    Submit KYC for verification. Raw files are encrypted by the API and available only to authorized CHA and admin roles.
   </p>
+
+  @if (role !== 'PendingCHA') {
+    <form class="kyc-form" (ngSubmit)="uploadKyc()">
+      <label>Document type
+        <select name="documentType" [(ngModel)]="documentType">
+          <option>Business registration</option><option>IEC certificate</option><option>GST certificate</option><option>Identity document</option><option>Other</option>
+        </select>
+      </label>
+      <label>Choose file<input type="file" accept=".pdf,.png,.jpg,.jpeg" (change)="onFileSelected($event)" required></label>
+      <button class="primary-button" type="submit">Upload for KYC review</button>
+    </form>
+  } @else {
+    <p>Your CHA account is awaiting role approval.</p>
+  }
+  @if (status()) { <p class="upload-status" role="status">{{ status() }}</p> }
+  @if (error()) { <p class="upload-error" role="alert">{{ error() }}</p> }
 </section>
 

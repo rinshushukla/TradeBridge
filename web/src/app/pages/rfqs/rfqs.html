@@ -1,0 +1,141 @@
+<section class="rfq-page">
+  <div class="rfq-heading">
+    <div>
+      <div class="eyebrow">TRADE WORKSPACE</div>
+      <h1>Requests for quotation</h1>
+      <p>Importers publish product and shipping requirements. Exporters submit private sealed bids.</p>
+    </div>
+    @if (role === 'Importer') {
+      <button class="primary-button" (click)="showCreate.set(true)">＋ Create RFQ</button>
+    }
+  </div>
+
+  @if (error()) { <div class="rfq-message error" role="alert">{{ error() }}</div> }
+  @if (notice()) { <div class="rfq-message" role="status">{{ notice() }}</div> }
+
+  @if (rfqs().length) {
+    <div class="rfq-list">
+      @for (rfq of rfqs(); track rfq.id) {
+        <article class="rfq-card">
+          <div class="rfq-card-top"><span class="reference">{{ rfq.reference }}</span><span class="open-pill">{{ rfq.status }}</span></div>
+          <h2>{{ rfq.product }}</h2>
+          <p class="rfq-quantity">{{ rfq.quantity }} · {{ rfq.incoterms }}</p>
+          <div class="rfq-route"><span>{{ rfq.originPort }}</span><b>→</b><span>{{ rfq.destinationPort }}</span></div>
+          <dl><div><dt>Target shipment</dt><dd>{{ rfq.targetShipmentDate | date:'mediumDate' }}</dd></div><div><dt>Certifications</dt><dd>{{ rfq.requiredCertifications || 'None specified' }}</dd></div></dl>
+          <div class="rfq-actions">
+            @if (role === 'Exporter' && rfq.status === 'Open') { <button class="text-button" (click)="selectedRfq.set(rfq)">Submit sealed bid →</button> }
+            @if (role === 'CHA' && rfq.status === 'Open') { <button class="text-button" (click)="unsealBids(rfq)">Review and unseal bids →</button> }
+            @if ((role === 'Importer' && (rfq.status === 'BidsUnsealed' || rfq.status === 'Awarded')) || role === 'CHA') { <button class="text-button" (click)="openBidReview(rfq)">View bids →</button> }
+            @if (role === 'Importer' || role === 'CHA' || (role === 'Exporter' && rfq.hasSubmittedBid)) { <button class="text-button" (click)="openMessages(rfq)">CHA messages →</button> }
+            @if (role === 'Importer' || role === 'CHA' || (role === 'Exporter' && rfq.isSelectedExporter)) { <button class="text-button" (click)="openDocuments(rfq)">Trade documents →</button> }
+          </div>
+        </article>
+      }
+    </div>
+  } @else if (!error()) {
+    <div class="empty-rfqs"><b>No open RFQs yet</b><span>New requests will appear here for eligible exporters.</span></div>
+  }
+
+  @if (showCreate()) {
+    <div class="modal-backdrop" (click)="showCreate.set(false)">
+      <form class="rfq-modal" (ngSubmit)="createRfq()" (click)="$event.stopPropagation()">
+        <button type="button" class="modal-close" aria-label="Close" (click)="showCreate.set(false)">×</button>
+        <div class="eyebrow">IMPORTER</div><h2>Create a request</h2>
+        <div class="form-grid">
+          <label>Product<input name="product" [(ngModel)]="rfqForm.product" required maxlength="240"></label>
+          <label>Quantity<input name="quantity" [(ngModel)]="rfqForm.quantity" required placeholder="e.g. 2,400 kg"></label>
+          <label>Incoterms<select name="incoterms" [(ngModel)]="rfqForm.incoterms"><option>EXW</option><option>FCA</option><option>FOB</option><option>CFR</option><option>CIF</option><option>DAP</option><option>DPU</option><option>DDP</option></select></label>
+          <label>Target shipment date<input type="date" name="date" [(ngModel)]="rfqForm.targetShipmentDate" required></label>
+          <label>Origin port<input name="origin" [(ngModel)]="rfqForm.originPort" required></label>
+          <label>Destination port<input name="destination" [(ngModel)]="rfqForm.destinationPort" required></label>
+          <label class="wide">Required certifications<input name="certs" [(ngModel)]="rfqForm.requiredCertifications" placeholder="Organic, ISO…"></label>
+          <label class="wide">Contact details <small>Private to authorized staff</small><input name="contact" [(ngModel)]="rfqForm.contactDetails" autocomplete="off"></label>
+          <label>Target price <small>Private</small><input type="number" name="price" [(ngModel)]="rfqForm.targetPrice" min="0" step="0.01"></label>
+          <label>Internal notes <small>Private</small><input name="notes" [(ngModel)]="rfqForm.internalNotes"></label>
+        </div>
+        <div class="modal-actions"><button type="button" class="secondary-button" (click)="showCreate.set(false)">Cancel</button><button class="primary-button" type="submit">Publish RFQ</button></div>
+      </form>
+    </div>
+  }
+
+  @if (selectedRfq(); as rfq) {
+    <div class="modal-backdrop" (click)="selectedRfq.set(null)">
+      <form class="rfq-modal bid-modal" (ngSubmit)="submitBid()" (click)="$event.stopPropagation()">
+        <button type="button" class="modal-close" aria-label="Close" (click)="selectedRfq.set(null)">×</button>
+        <div class="eyebrow">SEALED BID · {{ rfq.reference }}</div><h2>{{ rfq.product }}</h2>
+        <p>Your bid is encrypted before it is stored. Exporters cannot view other bids.</p>
+        <div class="form-grid"><label>Price<input type="number" name="bidPrice" [(ngModel)]="bidForm.price" min="0" step="0.01" required></label><label>Currency<select name="currency" [(ngModel)]="bidForm.currency"><option>USD</option><option>EUR</option><option>INR</option></select></label><label>Lead time (days)<input type="number" name="leadTime" [(ngModel)]="bidForm.leadTimeDays" min="1" required></label><label>Shipping terms<input name="shipping" [(ngModel)]="bidForm.shippingTerms" required></label></div>
+        <div class="modal-actions"><button type="button" class="secondary-button" (click)="selectedRfq.set(null)">Cancel</button><button class="primary-button" type="submit">Submit sealed bid</button></div>
+      </form>
+    </div>
+  }
+
+  @if (reviewRfq(); as rfq) {
+    <div class="modal-backdrop" (click)="reviewRfq.set(null)">
+      <section class="rfq-modal review-modal" (click)="$event.stopPropagation()">
+        <button type="button" class="modal-close" aria-label="Close" (click)="reviewRfq.set(null)">×</button>
+        <div class="eyebrow">SEALED BID REVIEW · {{ rfq.reference }}</div><h2>{{ rfq.product }}</h2>
+        @if (bids().length) {
+          @if (role === 'Importer' && rfq.status === 'BidsUnsealed') {
+            <div class="contract-terms">
+              <label>Contract incoterms<select name="contractIncoterms" [(ngModel)]="contractForm.incoterms"><option>EXW</option><option>FCA</option><option>FOB</option><option>CFR</option><option>CIF</option><option>DAP</option><option>DPU</option><option>DDP</option></select></label>
+              <label>Delivery terms<input name="deliveryTerms" [(ngModel)]="contractForm.deliveryTerms" required></label>
+              <label>Penalties<input name="penalties" [(ngModel)]="contractForm.penalties" required></label>
+              <label>Currency<select name="contractCurrency" [(ngModel)]="contractForm.currency"><option>USD</option><option>EUR</option><option>INR</option></select></label>
+              <small>These terms are saved as an encrypted draft contract; parties still need to review and sign.</small>
+            </div>
+          }
+          @for (bid of bids(); track bid.id) {
+            <article class="bid-row"><div><b>{{ bid.status }}</b><small>Submitted {{ bid.submittedAtUtc | date:'medium' }}</small></div>
+              @if (bidDetail()?.bidId === bid.id) { <div class="bid-detail"><b>{{ bidDetail()!.price | number:'1.2-2' }} {{ bidDetail()!.currency }}</b><span>{{ bidDetail()!.leadTimeDays }} day lead · {{ bidDetail()!.shippingTerms }}</span></div> }
+              @if (bidDetail()?.bidId !== bid.id) { <button class="text-button" (click)="showBid(rfq, bid.id)">Reveal bid</button> }
+              @if (role === 'Importer' && rfq.status === 'BidsUnsealed') { <button class="primary-button" (click)="selectBid(rfq, bid.id)">Select bid</button> }
+            </article>
+          }
+        } @else { <p>No bids have been submitted yet.</p> }
+        @if (role === 'Importer' && rfq.status === 'Open') { <p>Bids stay sealed until the CHA completes review.</p> }
+      </section>
+    </div>
+  }
+
+  @if (messageRfq(); as rfq) {
+    <div class="modal-backdrop" (click)="messageRfq.set(null)">
+      <section class="rfq-modal review-modal" (click)="$event.stopPropagation()">
+        <button type="button" class="modal-close" aria-label="Close" (click)="messageRfq.set(null)">×</button>
+        <div class="eyebrow">CHA MEDIATION · {{ rfq.reference }}</div><h2>Messages</h2>
+        <div class="message-list">
+          @for (message of messages(); track message.id) {
+            <article class="message-row"><p>{{ message.body }}</p><small>{{ message.status }} · {{ message.createdAtUtc | date:'medium' }}</small>
+              @if (role === 'CHA' && message.status !== 'Released') { <button class="text-button" (click)="releaseMessage(rfq, message.id)">Release to participants</button> }
+            </article>
+          } @empty { <p>No messages yet.</p> }
+        </div>
+        <form (ngSubmit)="sendMessage()"><label>Send a message through the CHA<textarea name="message" [(ngModel)]="messageBody" rows="3" maxlength="5000" required></textarea></label><button class="primary-button" type="submit">Send message</button></form>
+      </section>
+    </div>
+  }
+
+  @if (documentRfq(); as rfq) {
+    <div class="modal-backdrop" (click)="documentRfq.set(null)">
+      <section class="rfq-modal review-modal" (click)="$event.stopPropagation()">
+        <button type="button" class="modal-close" aria-label="Close" (click)="documentRfq.set(null)">×</button>
+        <div class="eyebrow">ENCRYPTED TRADE DOCUMENTS · {{ rfq.reference }}</div><h2>Documents</h2>
+        <div class="message-list">
+          @for (item of documents(); track item.id) {
+            <article class="message-row"><p><b>{{ item.documentType }}</b></p><small>{{ item.status }} · {{ item.createdAtUtc | date:'medium' }}</small>
+              @if (role === 'CHA' && item.status === 'PendingCHAReview') { <button class="text-button" (click)="reviewDocument(rfq, item, 'Verified')">Verify and release</button><button class="text-button reject" (click)="reviewDocument(rfq, item, 'Rejected')">Reject</button> }
+              @if (role === 'CHA' || (role === 'Importer' && item.status === 'Released') || (role === 'Exporter' && item.uploadedByMe)) { <button class="text-button" (click)="downloadDocument(rfq, item)">Download</button> }
+            </article>
+          } @empty { <p>No trade documents have been uploaded.</p> }
+        </div>
+        @if (role === 'Importer' || role === 'CHA' || (role === 'Exporter' && rfq.isSelectedExporter)) {
+          <form class="document-upload" (ngSubmit)="uploadDocument()">
+            <label>Document type<select name="documentType" [(ngModel)]="documentType"><option>Bill of lading</option><option>Commercial invoice</option><option>Packing list</option><option>Certificate of analysis</option><option>Customs paperwork</option></select></label>
+            <label>Choose PDF or image<input type="file" accept="application/pdf,image/jpeg,image/png" (change)="onDocumentSelected($event)" required></label>
+            <button class="primary-button" type="submit">Upload encrypted document</button>
+          </form>
+        }
+      </section>
+    </div>
+  }
+</section>

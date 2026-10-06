@@ -1,17 +1,20 @@
 <main class="auth-page">
   <section class="auth-card">
-    <a class="brand" routerLink="/login"><span class="brand-mark">t<span>b</span></span><span>tradebridge</span></a>
+    <a class="brand" routerLink="/login"><span class="brand-mark">t<span></span></span><span>tradebridge</span></a>
     <p class="eyebrow">GET STARTED</p>
     <h1>Create your account</h1>
-    <p class="intro">Set up your TradeBridge workspace.</p>
+    <p class="intro">Create an account to start a trade workflow. CHA access is reviewed before activation.</p>
     <form (ngSubmit)="submit()">
       <label>Full name<input type="text" name="name" [(ngModel)]="name" autocomplete="name" required></label>
-      <label>Work email<input type="email" name="email" [(ngModel)]="email" autocomplete="email" required></label>
-      <label>Password<input type="password" name="password" [(ngModel)]="password" autocomplete="new-password" minlength="8" required></label>
+      <label>Organization name<input type="text" name="organization" [(ngModel)]="organization" autocomplete="organization" required></label>
+      <label>Trade role<select name="role" [(ngModel)]="role"><option value="Importer">Importer</option><option value="Exporter">Exporter</option><option value="CHA">CHA (review required)</option></select></label>
+      <label>Work email<input type="email" name="email" [(ngModel)]="email" autocomplete="email"></label>
+      <label>Phone number<input type="tel" name="phoneNumber" [(ngModel)]="phoneNumber" autocomplete="tel" placeholder="+14155552671"></label>
+      <label>Password<input type="password" name="password" [(ngModel)]="password" autocomplete="new-password" minlength="12" required></label>
       @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
       <button class="submit" type="submit">Create account</button>
     </form>
     <p class="switch">Already have an account? <a routerLink="/login">Sign in</a></p>
-    <p class="notice">Demo signup stores one account in this browser only. No server account is created.</p>
+    <p class="notice">Your account is stored by the TradeBridge API. Submit KYC documents after signing in.</p>
   </section>
 </main>

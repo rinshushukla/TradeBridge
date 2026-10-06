@@ -5,7 +5,7 @@
     aria-label="TradeBridge home"
   >
     <span class="brand-mark">
-      t<span>b</span>
+      TB<span></span>
     </span>
 
     <span>tradebridge</span>
@@ -21,7 +21,7 @@
       <small>Exporter workspace</small>
     </span>
 
-    <span class="chevron">⌄</span>
+    <!-- <span class="chevron">⌄</span> -->
   </div>
 
   <div class="nav-label">WORKSPACE</div>
@@ -39,12 +39,20 @@
 
     <a
       class="nav-item"
-      routerLink="/shipments"
+      routerLink="/rfqs"
       routerLinkActive="active"
     >
       <span>↗</span>
+      RFQs & bids
+    </a>
+
+    <a
+      class="nav-item"
+      routerLink="/shipments"
+      routerLinkActive="active"
+    >
+      <span>▣</span>
       Shipments
-      <i>8</i>
     </a>
 
     <a
@@ -128,12 +136,12 @@
     <div class="breadcrumb">
       Workspace
       <span>/</span>
-      <b>Overview</b>
+      <b>{{ currentPageTitle }}</b>
     </div>
 
-    <div class="top-actions">
+     <div class="top-actions">
       <span class="today">
-        Thursday, 1 October 2026
+        {{ currentDateTime }}
       </span>
 
       <button
@@ -152,6 +160,13 @@
   </header>
 
   <div class="page-content">
+
+    @if (toastMessage()) {
+      <div class="toast" role="status">
+        {{ toastMessage() }}
+        <button aria-label="Dismiss notification" (click)="toastMessage.set('')">×</button>
+      </div>
+    }
 
     <!-- IMPORTANT:
          Routed pages are rendered here -->

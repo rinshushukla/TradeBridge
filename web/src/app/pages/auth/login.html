@@ -1,17 +1,16 @@
 <main class="auth-page">
   <section class="auth-card">
-    <a class="brand" routerLink="/login"><span class="brand-mark">t<span>b</span></span><span>tradebridge</span></a>
+    <a class="brand" routerLink="/login"><span class="brand-mark">TB<span></span></span><span>tradebridge</span></a>
     <p class="eyebrow">WELCOME BACK</p>
     <h1>Sign in to your workspace</h1>
     <p class="intro">Keep your cross-border trade moving.</p>
     <form (ngSubmit)="submit()">
-      <label>Email address<input type="email" name="email" [(ngModel)]="email" autocomplete="username" required></label>
+      <label>Email or phone number<input type="text" name="identifier" [(ngModel)]="identifier" autocomplete="username" required></label>
       <label>Password<input type="password" name="password" [(ngModel)]="password" autocomplete="current-password" required></label>
       @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
       <button class="submit" type="submit">Sign in</button>
     </form>
-    <div class="demo"><b>Demo access</b><span>Email: {{ auth.demoEmail }}</span><span>Password: {{ auth.demoPassword }}</span></div>
     <p class="switch">New to TradeBridge? <a routerLink="/signup">Create an account</a></p>
-    <p class="notice">Demo authentication only. Accounts are stored in this browser.</p>
+    <p class="notice">Sign in to your TradeBridge account.</p>
   </section>
 </main>

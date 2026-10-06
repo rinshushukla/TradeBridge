@@ -5,7 +5,7 @@
     "tradebridge-web": {
       "projectType": "application", "root": "", "sourceRoot": "src", "prefix": "tb",
       "architect": {
-        "build": { "builder": "@angular/build:application", "options": { "browser": "src/main.ts", "index": "src/index.html", "tsConfig": "tsconfig.app.json", "styles": ["src/styles.css"], "outputPath": "dist/tradebridge-web" }, "configurations": { "production": { "optimization": true, "outputHashing": "all", "budgets": [{"type":"initial","maximumWarning":"750kB","maximumError":"1MB"}] }, "development": { "optimization": false, "extractLicenses": false, "sourceMap": true } }, "defaultConfiguration": "production" },
+        "build": { "builder": "@angular/build:application", "options": { "browser": "src/main.ts", "index": "src/index.html", "tsConfig": "tsconfig.app.json", "styles": ["src/styles.css"], "assets": [{ "glob": "config.json", "input": "public", "output": "/" }], "outputPath": "dist/tradebridge-web" }, "configurations": { "production": { "optimization": true, "outputHashing": "all", "budgets": [{"type":"initial","maximumWarning":"750kB","maximumError":"1MB"}] }, "development": { "optimization": false, "extractLicenses": false, "sourceMap": true } }, "defaultConfiguration": "production" },
         "serve": { "builder": "@angular/build:dev-server", "configurations": { "production": { "buildTarget": "tradebridge-web:build:production" }, "development": { "buildTarget": "tradebridge-web:build:development" } }, "defaultConfiguration": "development" }
       }
     }

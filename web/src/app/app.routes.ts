@@ -9,6 +9,7 @@ import { TeamComponent } from './pages/team/team';
 import { SettingsComponent } from './pages/settings/settings';
 import { LoginComponent } from './pages/auth/login';
 import { SignupComponent } from './pages/auth/signup';
+import { RfqsComponent } from './pages/rfqs/rfqs';
 import { authGuard } from './core/auth.guard';
 
 export const routes: Routes = [
@@ -31,6 +32,10 @@ export const routes: Routes = [
       {
         path: 'shipments',
         component: ShipmentsComponent
+      },
+      {
+        path: 'rfqs',
+        component: RfqsComponent
       },
       {
         path: 'documents',

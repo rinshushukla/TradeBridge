@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { ApiUrlService } from './api-url.service';
 
 import {
   Shipment,
@@ -13,6 +14,7 @@ import {
 })
 export class ShipmentService {
   private readonly http = inject(HttpClient);
+  private readonly api = inject(ApiUrlService);
 
   private readonly sampleShipments: Shipment[] = [
     {
@@ -78,7 +80,7 @@ export class ShipmentService {
   ];
 
   getShipments(): Observable<ShipmentApiRecord[]> {
-    return this.http.get<ShipmentApiRecord[]>('/api/shipments');
+    return this.http.get<ShipmentApiRecord[]>(this.api.url('/api/shipments'));
   }
 
   getSampleShipments(): Shipment[] {
